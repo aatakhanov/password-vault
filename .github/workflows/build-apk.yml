@@ -16,8 +16,7 @@ jobs:
       - name: 🟢 Node.js o'rnatish
         uses: actions/setup-node@v4
         with:
-          node-version: 18
-          cache: npm
+          node-version: 20
 
       - name: ☕ Java JDK 17 o'rnatish
         uses: actions/setup-java@v4
@@ -29,13 +28,13 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: 📦 Paketlarni o'rnatish
-        run: npm ci
+        run: npm install
 
       - name: ⚙️ EAS CLI o'rnatish
         run: npm install -g eas-cli
 
       - name: 🏗️ Android Prebuild qilish
-        run: npx expo prebuild --platform android
+        run: npx expo prebuild --platform android --no-install
 
       - name: 🔨 APK Yig'ish (Gradle AssembleRelease)
         working-directory: android
