@@ -39,7 +39,7 @@ jobs:
         run: |
           set -o pipefail
           ./gradlew assembleRelease --no-daemon 2>&1 | tee ../gradle.log || {
-            grep -A12 "What went wrong" ../gradle.log | head -14 | cut -c1-300 | while read -r l; do echo "::error::WW $l"; done
+            grep -E "^e: |expo@|Kotlin" ../gradle.log | head -8; (cd .. && node -e "for(const n of ['expo','expo-modules-core','react-native']) console.log(n, require('./node_modules/'+n+'/package.json').version)") | head -3 | cut -c1-300 | while read -r l; do echo "::error::WW $l"; done
             exit 1
           }
 
