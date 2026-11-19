@@ -39,7 +39,7 @@ jobs:
         run: |
           set -o pipefail
           ./gradlew assembleRelease --no-daemon 2>&1 | tee ../gradle.log || {
-            grep -iE "error|unable|cannot|resolve|syntax" ../gradle.log | grep -v "What went wrong" | head -12 | cut -c1-300 | while read -r l; do echo "::error::$l"; done
+            grep -A12 "What went wrong" ../gradle.log | head -14 | cut -c1-300 | while read -r l; do echo "::error::WW $l"; done
             exit 1
           }
 
