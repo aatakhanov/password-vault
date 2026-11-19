@@ -24,9 +24,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 📱 Android SDK o'rnatish
-        uses: android-actions/setup-android@v3
-
       - name: 📦 Paketlarni o'rnatish
         run: npm install
 
