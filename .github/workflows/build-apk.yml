@@ -39,8 +39,7 @@ jobs:
         run: |
           set -o pipefail
           ./gradlew assembleRelease --no-daemon 2>&1 | tee ../gradle.log || {
-            grep -m8 -E "What went wrong|error:|Execution failed|FAILED|Could not|not found|Exception" -A2 ../gradle.log | tr '
-' ' ' | cut -c1-1500 | while read -r l; do echo "::error::$l"; done
+            grep -m8 -E "What went wrong|error:|Execution failed|FAILED|Could not|not found|Exception" -A2 ../gradle.log | tr '\n' ' ' | cut -c1-1500 | while read -r l; do echo "::error::$l"; done
             exit 1
           }
 
