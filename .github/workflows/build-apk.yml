@@ -1,0 +1,48 @@
+name: Android APK Yig'ish (Build APK)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Kodni yuklab olish (Checkout)
+        uses: actions/checkout@v4
+
+      - name: 🟢 Node.js o'rnatish
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: ☕ Java JDK 17 o'rnatish
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 📱 Android SDK o'rnatish
+        uses: android-actions/setup-android@v3
+
+      - name: 📦 Paketlarni o'rnatish
+        run: npm ci
+
+      - name: ⚙️ EAS CLI o'rnatish
+        run: npm install -g eas-cli
+
+      - name: 🏗️ Android Prebuild qilish
+        run: npx expo prebuild --platform android
+
+      - name: 🔨 APK Yig'ish (Gradle AssembleRelease)
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: 📤 APK Faylini Yuklash (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: SecurePass-Release-APK
+          path: android/app/build/outputs/apk/release/*.apk

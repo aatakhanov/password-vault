@@ -1,0 +1,2005 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#090D16">
+  <title>SecurePass - 100% Offline Password Manager & 2FA</title>
+  <style id="theme-styles">
+    :root {
+      --bg-dark: #090D16;
+      --card-bg: #0F172A;
+      --card-border: #1E293B;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --primary: #2563EB;
+      --primary-hover: #1D4ED8;
+      --accent: #38BDF8;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+    }
+  </style>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      transition: background-color 0.2s, border-color 0.2s, color 0.1s;
+    }
+
+    body {
+      background-color: #020617;
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    /* Telefon Qobig'i (Smartphone Simulator Frame) */
+    .phone-simulator {
+      width: 100%;
+      max-width: 440px;
+      height: 900px;
+      background: var(--bg-dark);
+      border-radius: 46px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 0 10px #1E293B;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      height: 44px;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      z-index: 10;
+      background: var(--bg-dark);
+    }
+    .notch {
+      width: 105px;
+      height: 24px;
+      background: #000;
+      border-radius: 20px;
+    }
+
+    .offline-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--success);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .screen-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+    }
+    .screen.active {
+      display: flex;
+    }
+
+    h1 { font-size: 24px; font-weight: 800; }
+    h2 { font-size: 18px; font-weight: 700; }
+    p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+    .btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      transition: opacity 0.2s;
+    }
+    .btn:active { opacity: 0.8; }
+    .btn-secondary {
+      background: #1E293B;
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+    }
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+    }
+    .btn-danger {
+      background: #7F1D1D;
+      color: #FECACA;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      color: var(--text-main);
+      font-size: 14px;
+      outline: none;
+      margin-top: 6px;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--primary);
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #CBD5E1;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .search-bar {
+      margin-bottom: 10px;
+    }
+    .cat-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .cat-chips::-webkit-scrollbar { display: none; }
+    .chip {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .chip.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .vault-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+    .vault-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .vault-card:active { transform: scale(0.98); }
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+    }
+    .card-details { flex: 1; min-width: 0; }
+    .card-title { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-sub { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+    .card-badge-totp {
+      background: var(--primary);
+      color: #fff;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-weight: 800;
+      margin-left: 6px;
+    }
+    .copy-chip {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--accent);
+      border: 1px solid var(--card-border);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .totp-box {
+      background: linear-gradient(135deg, rgba(3, 105, 161, 0.4), rgba(8, 47, 73, 0.6));
+      border: 1px solid var(--accent);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .totp-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .totp-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+    }
+    .totp-code-display {
+      font-size: 28px;
+      font-weight: 800;
+      font-family: monospace;
+      letter-spacing: 4px;
+      color: #FFFFFF;
+      margin-top: 2px;
+    }
+    .totp-countdown-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 20px;
+      background: rgba(0,0,0,0.3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--accent);
+      border: 2px solid var(--accent);
+    }
+    .totp-copy-btn {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: #fff;
+      padding: 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .fab-btn {
+      position: absolute;
+      bottom: 80px;
+      right: 24px;
+      width: 52px;
+      height: 52px;
+      border-radius: 26px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 26px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.5);
+      border: none;
+      cursor: pointer;
+      z-index: 5;
+    }
+
+    .bottom-nav {
+      height: 65px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding-bottom: 8px;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+    .nav-item.active {
+      color: var(--accent);
+    }
+    .nav-icon { font-size: 20px; }
+
+    .toast {
+      position: absolute;
+      top: 55px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--success);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      display: none;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      white-space: nowrap;
+    }
+
+    .trash-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .snap-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    /* Til va Mavzu tugmalari */
+    .selector-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 6px;
+      margin-bottom: 12px;
+    }
+    .selector-btn {
+      padding: 10px 4px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+    }
+    .selector-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="phone-simulator">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span>21:30</span>
+      <div class="notch"></div>
+      <div class="offline-badge">
+        <div class="pulse-dot"></div>
+        <span id="badge-offline-txt">100% OFFLINE</span>
+      </div>
+    </div>
+
+    <!-- Toast bildirishnoma -->
+    <div id="toast" class="toast">Nusxalandi!</div>
+
+    <!-- Content Area -->
+    <div class="screen-content">
+
+      <!-- 1. SETUP MASTER PASSWORD EKRANI -->
+      <div id="screen-setup" class="screen">
+        <div style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
+          <div style="font-size: 46px; margin-bottom: 8px;">🛡️</div>
+          <h1>SecurePass</h1>
+          <p id="t-setup-sub" style="margin-top: 6px;">Barcha ma'lumotlar faqat telefoningiz xotirasida AES-256 bilan shifrlanadi</p>
+        </div>
+
+        <div style="background: var(--card-bg); padding: 18px; border-radius: 16px; border: 1px solid var(--card-border);">
+          <div class="form-group">
+            <label id="t-setup-pass-label">Master Parol (kamida 8 ta belgi)</label>
+            <input type="password" id="setup-pass" placeholder="••••••••">
+          </div>
+          <div class="form-group">
+            <label id="t-setup-confirm-label">Parolni Qayta Kiriting</label>
+            <input type="password" id="setup-confirm" placeholder="••••••••">
+          </div>
+          <button class="btn" style="width: 100%; margin-top: 10px;" onclick="handleSetup()">
+            <span id="t-setup-btn">🚀 Omborni Faollashtirish</span>
+          </button>
+        </div>
+
+        <!-- Quick Language Choice at Setup -->
+        <div style="margin-top: 20px; text-align: center;">
+          <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Til / Язык / Language:</span>
+          <div class="selector-grid" style="margin-top: 8px;">
+            <div class="selector-btn active" id="setup-lang-uz" onclick="changeLanguage('uz')">🇺🇿 O'zbek</div>
+            <div class="selector-btn" id="setup-lang-ru" onclick="changeLanguage('ru')">🇷🇺 Русский</div>
+            <div class="selector-btn" id="setup-lang-en" onclick="changeLanguage('en')">🇬🇧 English</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.1 FAVQULODDA TIKLASH KALITI MODALI -->
+      <div id="screen-recovery-key" class="screen">
+        <div style="text-align: center; margin-top: 24px; margin-bottom: 16px;">
+          <div style="font-size: 44px; margin-bottom: 6px;">🔑</div>
+          <h2 id="t-rec-title">Favqulodda Tiklash Kaliti</h2>
+          <p id="t-rec-desc" style="margin-top: 6px;">Agar master parolni unutsangiz, bu kalit orqali barcha parollarni 100% tiklay olasiz!</p>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.04); border: 2px dashed var(--accent); border-radius: 16px; padding: 16px; text-align: center; margin-bottom: 16px;">
+          <div id="t-rec-your-key" style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 6px;">Sizning Favqulodda Kalitingiz:</div>
+          <div id="recovery-key-display" style="font-size: 17px; font-weight: 800; font-family: monospace; color: var(--accent); letter-spacing: 2px; word-break: break-all;">
+            SECURE-XXXX-XXXX-XXXX
+          </div>
+        </div>
+
+        <button class="btn btn-secondary" style="width: 100%; margin-bottom: 10px;" onclick="copyRecoveryKey()">
+          <span id="t-rec-copy-btn">📋 Kalitni Nusxalash</span>
+        </button>
+        <button class="btn btn-success" style="width: 100%; margin-bottom: 16px;" onclick="downloadRecoveryKit()">
+          <span id="t-rec-dl-btn">📥 Tiklash Kitobini Yuklab Olish (.txt)</span>
+        </button>
+
+        <button class="btn" style="width: 100%;" onclick="finishSetupAndEnter()">
+          <span id="t-rec-enter-btn">✅ Saqlab oldim, Ilovaga Kirish</span>
+        </button>
+      </div>
+
+      <!-- 2. UNLOCK EKRANI -->
+      <div id="screen-unlock" class="screen">
+        <div style="text-align: center; margin-top: 60px; margin-bottom: 24px;">
+          <div style="width: 80px; height: 80px; border-radius: 40px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 16px; border: 1px solid var(--card-border);">
+            🔒
+          </div>
+          <h1 id="t-unlock-title">SecurePass Qulflangan</h1>
+          <p id="t-unlock-sub" style="margin-top: 6px;">Omborga kirish uchun master parolni tering</p>
+        </div>
+
+        <div style="background: var(--card-bg); padding: 18px; border-radius: 16px; border: 1px solid var(--card-border);">
+          <div class="form-group">
+            <input type="password" id="unlock-pass" placeholder="••••••••">
+          </div>
+          <div id="lockout-warning" style="display:none; color:var(--danger); font-size:12px; margin-bottom:10px; font-weight:600;"></div>
+          <button id="unlock-btn" class="btn" style="width: 100%;" onclick="handleUnlock()">
+            <span id="t-unlock-btn">🔓 Qulfdan Chiqarish</span>
+          </button>
+          <div style="text-align: center; margin-top: 14px;">
+            <a href="javascript:void(0)" onclick="openRecoveryPrompt()" id="t-forgot-link" style="color: var(--accent); font-size: 12px; font-weight: 600; text-decoration: none;">
+              Parolni unutdingizmi? Favqulodda kalit bilan ochish
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.1 FAVQULODDA TIKLASH BILAN OCHISH EKRANI -->
+      <div id="screen-forgot-unlock" class="screen">
+        <div style="text-align: center; margin-top: 40px; margin-bottom: 20px;">
+          <h2 id="t-forgot-title">Parolni Qayta Tiklash</h2>
+          <p id="t-forgot-sub">Favqulodda kalitni kiriting va yangi master parol o'rnating</p>
+        </div>
+
+        <div style="background: var(--card-bg); padding: 18px; border-radius: 16px; border: 1px solid var(--card-border);">
+          <div class="form-group">
+            <label id="t-rec-input-label">Favqulodda Tiklash Kaliti</label>
+            <input type="text" id="recover-key-input" placeholder="SECURE-XXXX-XXXX..." style="font-family: monospace;">
+          </div>
+          <div class="form-group">
+            <label id="t-new-pass-label">Yangi Master Parol</label>
+            <input type="password" id="recover-new-pass" placeholder="Kamida 8 ta belgi">
+          </div>
+          <button class="btn btn-success" style="width: 100%; margin-top: 10px;" onclick="handleEmergencyRecover()">
+            <span id="t-rec-submit-btn">🔑 Qayta Tiklash va Kirish</span>
+          </button>
+          <button class="btn btn-secondary" style="width: 100%; margin-top: 8px;" onclick="showScreen('screen-unlock')">
+            <span id="t-cancel-btn-1">Bekor qilish</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. ASOSIY OMBOR (VAULT) EKRANI -->
+      <div id="screen-vault" class="screen">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h2 id="t-vault-heading">Mening Parollarim</h2>
+          <div style="display: flex; gap: 6px;">
+            <button class="copy-chip" style="color: var(--text-main);" onclick="openTrashScreen()" id="t-vault-trash-btn">🗑️ Chiqindi</button>
+            <button class="copy-chip" style="color: var(--success);" onclick="downloadAsTxtFile()" id="t-vault-txt-btn">📄 TXT</button>
+          </div>
+        </div>
+
+        <!-- Qidiruv -->
+        <div class="search-bar">
+          <input type="text" id="search-input" placeholder="🔍 Qidiruv (nom, login, sayt)..." oninput="renderVault()">
+        </div>
+
+        <!-- Filtr toifalari -->
+        <div class="cat-chips">
+          <div class="chip active" data-cat="all" onclick="filterCat('all')" id="cat-t-all">Barchasi</div>
+          <div class="chip" data-cat="login" onclick="filterCat('login')" id="cat-t-login">🌐 Saytlar</div>
+          <div class="chip" data-cat="card" onclick="filterCat('card')" id="cat-t-card">💳 Kartalar</div>
+          <div class="chip" data-cat="wifi" onclick="filterCat('wifi')" id="cat-t-wifi">📶 Wi-Fi</div>
+          <div class="chip" data-cat="id_doc" onclick="filterCat('id_doc')" id="cat-t-id_doc">🪪 Hujjatlar</div>
+          <div class="chip" data-cat="note" onclick="filterCat('note')" id="cat-t-note">📝 Eslatmalar</div>
+        </div>
+
+        <!-- Yozuvlar ro'yxati -->
+        <div id="vault-list" class="vault-list"></div>
+
+        <!-- Qo'shish FAB tugmasi -->
+        <button class="fab-btn" onclick="openAddModal()">+</button>
+      </div>
+
+      <!-- 3.1 CHIQINDI QUTISI (RECYCLE BIN) -->
+      <div id="screen-trash" class="screen">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h2 id="t-trash-title">🗑️ Chiqindi Qutisi</h2>
+          <button class="copy-chip" onclick="showScreen('screen-vault')" id="t-trash-back">← Omborga</button>
+        </div>
+
+        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+          <p style="color: var(--warning); font-size: 12px;" id="t-trash-notice">
+            🛡️ O'chirilgan barcha yozuvlar shu yerda saqlanadi. Istalgan payt bitta tugma bilan qayta tiklashingiz mumkin.
+          </p>
+        </div>
+
+        <div id="trash-list" style="display: flex; flex-direction: column; gap: 8px; flex: 1;"></div>
+      </div>
+
+      <!-- 4. GENERATOR EKRANI -->
+      <div id="screen-generator" class="screen">
+        <h2 id="t-gen-title">Parol Generatori</h2>
+        <p id="t-gen-subtitle" style="margin-bottom: 12px;">Xavfsiz tasodifiy parollar, so'zlar va PIN-kodlar</p>
+
+        <div class="gen-tabs">
+          <div class="gen-tab active" id="mode-random" onclick="setGenMode('random')">🔠 Murakkab</div>
+          <div class="gen-tab" id="mode-passphrase" onclick="setGenMode('passphrase')">💬 So'zli</div>
+          <div class="gen-tab" id="mode-pin" onclick="setGenMode('pin')">🔢 PIN</div>
+        </div>
+
+        <div class="gen-display-box">
+          <div id="gen-result" class="gen-password">••••••••••••••••</div>
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button class="btn btn-secondary" style="flex: 1; padding: 10px;" onclick="regeneratePassword()" id="t-gen-refresh">🔄 Yangilash</button>
+            <button class="btn" style="flex: 1; padding: 10px;" onclick="copyGenerated()" id="t-gen-copy">📋 Nusxalash</button>
+          </div>
+        </div>
+
+        <div id="gen-options-random" style="background: var(--card-bg); padding: 14px; border-radius: 16px; border: 1px solid var(--card-border);">
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between;">
+              <label id="t-gen-len-label">Uzunlik</label>
+              <span id="len-val" style="font-weight: 700; color: var(--accent);">16</span>
+            </div>
+            <div class="range-slider">
+              <input type="range" id="opt-len" min="6" max="40" value="16" oninput="updateLenVal()">
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-success" style="margin-top: 14px;" onclick="saveGeneratedToVault()">
+          <span id="t-gen-save-btn">💾 Omborga Saqlash</span>
+        </button>
+      </div>
+
+      <!-- 5. SOZLAMALAR, TIL VA MAVZULAR -->
+      <div id="screen-settings" class="screen">
+        <h2 id="t-set-title">Sozlamalar va Zaxira</h2>
+        <p id="t-set-subtitle" style="margin-bottom: 14px;">Ko'p qatlamli xotira, til va tashqi ko'rinish</p>
+
+        <!-- TILNI TANLASH (LANGUAGE) -->
+        <div style="background: var(--card-bg); border-radius: 14px; border: 1px solid var(--card-border); padding: 14px; margin-bottom: 14px;">
+          <div style="font-size: 13px; font-weight: 700; color: #E2E8F0; margin-bottom: 6px;" id="t-lang-header">
+            🌐 Ilova Tili (Language / Til / Язык)
+          </div>
+          <div class="selector-grid">
+            <div class="selector-btn" id="lang-btn-uz" onclick="changeLanguage('uz')">🇺🇿 O'zbek</div>
+            <div class="selector-btn" id="lang-btn-ru" onclick="changeLanguage('ru')">🇷🇺 Русский</div>
+            <div class="selector-btn" id="lang-btn-en" onclick="changeLanguage('en')">🇬🇧 English</div>
+          </div>
+        </div>
+
+        <!-- MAVZULARNI TANLASH (THEMES) -->
+        <div style="background: var(--card-bg); border-radius: 14px; border: 1px solid var(--card-border); padding: 14px; margin-bottom: 14px;">
+          <div style="font-size: 13px; font-weight: 700; color: #E2E8F0; margin-bottom: 6px;" id="t-theme-header">
+            🎨 Mavzu va Ranglar (Theme)
+          </div>
+          <div class="selector-grid">
+            <div class="selector-btn" id="theme-btn-slate" onclick="changeTheme('slate')">🌑 Dark Slate</div>
+            <div class="selector-btn" id="theme-btn-oled" onclick="changeTheme('oled')">⬛ OLED Black</div>
+            <div class="selector-btn" id="theme-btn-navy" onclick="changeTheme('navy')">🌌 Midnight</div>
+          </div>
+        </div>
+
+        <!-- Avto-Snapshotlar / Restore Points -->
+        <div style="background: var(--card-bg); border-radius: 14px; border: 1px solid var(--card-border); padding: 14px; margin-bottom: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="font-size: 13px; font-weight: 700; color: #E2E8F0;" id="t-snap-title">
+              🕒 Avtomatik Tiklash Nuqtalari (Snapshots)
+            </div>
+            <span style="font-size: 11px; color: var(--accent);" id="snap-count">0 ta</span>
+          </div>
+          <p style="font-size: 12px; margin-bottom: 10px;" id="t-snap-desc">
+            Har bir o'zgarishda saqlanib boruvchi nuqtalar. Kerak bo'lsa orqaga qaytishingiz mumkin.
+          </p>
+          <div id="snapshots-list" style="max-height: 150px; overflow-y: auto; margin-bottom: 8px;"></div>
+        </div>
+
+        <!-- TXT ga Eksport -->
+        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid var(--success); border-radius: 14px; padding: 14px; margin-bottom: 14px;">
+          <div style="font-size: 14px; font-weight: 700; color: var(--success); margin-bottom: 4px;" id="t-txt-title">
+            📄 Barcha Parollarni .TXT Faylga Olish
+          </div>
+          <button class="btn btn-success" style="width: 100%; padding: 10px;" onclick="downloadAsTxtFile()">
+            <span id="t-txt-btn-action">📥 Barcha Parollarni TXT ga Saqlash</span>
+          </button>
+        </div>
+
+        <!-- Shifrlangan Zaxira nusxa (Backup JSON) -->
+        <div style="background: var(--card-bg); border-radius: 14px; border: 1px solid var(--card-border); padding: 14px; margin-bottom: 14px;">
+          <button class="btn btn-secondary" style="width: 100%; margin-bottom: 8px;" onclick="exportEncryptedBackup()">
+            <span id="t-backup-btn">🔒 Shifrlangan Backup Faylini Yuklab Olish (.json)</span>
+          </button>
+          <button class="btn btn-secondary" style="width: 100%;" onclick="lockVault()">
+            <span id="t-lock-btn">🔐 Omborni Qulflash</span>
+          </button>
+        </div>
+
+        <!-- Xavfsiz tozalash -->
+        <div style="background: var(--card-bg); border-radius: 14px; border: 1px solid #7F1D1D; padding: 14px;">
+          <div style="font-size: 12px; font-weight: 700; color: #EF4444; text-transform: uppercase; margin-bottom: 8px;" id="t-danger-title">Xavfli Hudud</div>
+          <button class="btn btn-danger" style="width: 100%; padding: 10px;" onclick="safeWipeAllData()">
+            <span id="t-wipe-btn">🗑️ Barcha Ma'lumotlarni Tozalash</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 6. YANGI YOZUV QO'SHISH / TAHRIRLASH EKRANI -->
+      <div id="screen-create" class="screen">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h2 id="create-modal-title">Yangi Yozuv Qo'shish</h2>
+          <button class="copy-chip" onclick="showScreen('screen-vault')" id="t-cancel-btn-2">Bekor qilish</button>
+        </div>
+
+        <input type="hidden" id="edit-item-id">
+
+        <div class="cat-chips">
+          <div class="chip active" id="form-cat-login" onclick="setFormCategory('login')">🌐 Sayt</div>
+          <div class="chip" id="form-cat-card" onclick="setFormCategory('card')">💳 Karta</div>
+          <div class="chip" id="form-cat-wifi" onclick="setFormCategory('wifi')">📶 Wi-Fi</div>
+          <div class="chip" id="form-cat-id_doc" onclick="setFormCategory('id_doc')">🪪 Hujjat</div>
+          <div class="chip" id="form-cat-note" onclick="setFormCategory('note')">📝 Eslatma</div>
+        </div>
+
+        <div class="form-group">
+          <label id="t-form-title">Nomi *</label>
+          <input type="text" id="item-title" placeholder="Google, Telegram, Binance">
+        </div>
+
+        <div id="fields-login">
+          <div class="form-group">
+            <label id="t-form-login">Login / Email</label>
+            <input type="text" id="item-username" placeholder="user@gmail.com">
+          </div>
+          <div class="form-group">
+            <label id="t-form-password">Parol</label>
+            <input type="text" id="item-password" placeholder="••••••••">
+          </div>
+          <div class="form-group">
+            <label id="t-form-totp">🔢 2FA Maxfiy Kaliti (TOTP Secret - Ixtiyoriy)</label>
+            <input type="text" id="item-totp" placeholder="JBSWY3DPEHPK3PXP yoki otpauth://" style="font-family: monospace;">
+          </div>
+          <div class="form-group">
+            <label id="t-form-url">Sayt URL</label>
+            <input type="text" id="item-url" placeholder="https://...">
+          </div>
+        </div>
+
+        <div id="fields-card" style="display: none;">
+          <div class="form-group">
+            <label id="t-form-cardnum">Karta Raqami</label>
+            <input type="text" id="item-cardnumber" placeholder="8600 0000 0000 0000">
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <div class="form-group" style="flex: 1;">
+              <label id="t-form-expiry">Muddati</label>
+              <input type="text" id="item-expiry" placeholder="12/28">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label id="t-form-cvv">CVV</label>
+              <input type="password" id="item-cvv" placeholder="123">
+            </div>
+          </div>
+        </div>
+
+        <div id="fields-wifi" style="display: none;">
+          <div class="form-group">
+            <label id="t-form-wifissid">Wi-Fi Nomi (SSID)</label>
+            <input type="text" id="item-wifissid" placeholder="Uy_Wi-Fi_5G">
+          </div>
+          <div class="form-group">
+            <label id="t-form-wifipwd">Wi-Fi Paroli</label>
+            <input type="text" id="item-wifipassword" placeholder="Parol">
+          </div>
+        </div>
+
+        <div id="fields-id_doc" style="display: none;">
+          <div class="form-group">
+            <label id="t-form-docnum">Hujjat Seriya va Raqami</label>
+            <input type="text" id="item-docnumber" placeholder="AA 1234567">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label id="t-form-notes">Maxfiy Izoh / Eslatma</label>
+          <textarea id="item-notes" rows="3" placeholder="Qo'shimcha eslatmalar..."></textarea>
+        </div>
+
+        <button class="btn" style="width: 100%; margin-top: 10px;" onclick="saveItemData()">
+          <span id="t-form-save-btn">💾 Xavfsiz Shifrlab Saqlash</span>
+        </button>
+      </div>
+
+      <!-- 7. TAFSILOTLARNI KO'RISH EKRANI -->
+      <div id="screen-detail" class="screen">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <button class="copy-chip" onclick="showScreen('screen-vault')" id="t-detail-back">← Orqaga</button>
+          <div style="display: flex; gap: 8px;">
+            <button class="copy-chip" style="color: var(--accent); border-color: var(--accent);" onclick="editCurrentItem()" id="t-detail-edit">✏️ Tahrirlash</button>
+            <button class="copy-chip" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.4);" onclick="deleteCurrentItem()" id="t-detail-trash">🗑️ Chiqindiga</button>
+          </div>
+        </div>
+
+        <div style="background: var(--card-bg); border-radius: 16px; border: 1px solid var(--card-border); padding: 18px; margin-bottom: 16px;">
+          <h1 id="detail-title" style="margin-bottom: 4px;">---</h1>
+          <span id="detail-category" class="offline-badge" style="display: inline-block;">---</span>
+
+          <div id="detail-totp-widget" class="totp-box" style="display: none; margin-top: 16px;">
+            <div class="totp-header-row">
+              <div>
+                <div class="totp-title" id="t-det-totp-title">🔢 2FA KODI (AUTHENTICATOR)</div>
+                <div id="detail-totp-code" class="totp-code-display">--- ---</div>
+              </div>
+              <div id="detail-totp-timer" class="totp-countdown-circle">30s</div>
+            </div>
+            <button class="totp-copy-btn" onclick="copyDetailTotp()" id="t-det-totp-copy">
+              📋 2FA Kodini Nusxalash
+            </button>
+          </div>
+
+          <div id="detail-content" style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Pastki Navigatsiya -->
+    <div id="bottom-nav" class="bottom-nav" style="display: none;">
+      <button class="nav-item active" onclick="switchTab('screen-vault', this)" id="nav-btn-vault">
+        <span class="nav-icon">🔑</span>
+        <span id="t-nav-vault">Ombor</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('screen-generator', this)" id="nav-btn-gen">
+        <span class="nav-icon">⚡</span>
+        <span id="t-nav-gen">Generator</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('screen-settings', this)" id="nav-btn-set">
+        <span class="nav-icon">⚙️</span>
+        <span id="t-nav-set">Sozlamalar</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // --- LUG'ATLAR (TRANSLATIONS) ---
+    const I18N = {
+      uz: {
+        badgeOffline: '100% OFFLINE',
+        copied: 'Nusxalandi!',
+        saved: 'Saqlandi!',
+        deleted: 'Chiqindi qutisiga tushdi!',
+        restored: 'Omborga qaytarildi!',
+        setupSub: "Barcha ma'lumotlar faqat telefoningiz xotirasida AES-256 bilan shifrlanadi",
+        setupPassLabel: "Master Parol (kamida 8 ta belgi)",
+        setupConfirmLabel: "Parolni Qayta Kiriting",
+        setupBtn: "🚀 Omborni Faollashtirish",
+        recTitle: "Favqulodda Tiklash Kaliti",
+        recDesc: "Agar master parolni unutsangiz, bu kalit orqali barcha parollarni 100% tiklay olasiz!",
+        recYourKey: "Sizning Favqulodda Kalitingiz:",
+        recCopyBtn: "📋 Kalitni Nusxalash",
+        recDlBtn: "📥 Tiklash Kitobini Yuklab Olish (.txt)",
+        recEnterBtn: "✅ Saqlab oldim, Ilovaga Kirish",
+        unlockTitle: "SecurePass Qulflangan",
+        unlockSub: "Omborga kirish uchun master parolni tering",
+        unlockBtn: "🔓 Qulfdan Chiqarish",
+        forgotLink: "Parolni unutdingizmi? Favqulodda kalit bilan ochish",
+        vaultHeading: "Mening Parollarim",
+        trashBtn: "🗑️ Chiqindi",
+        txtBtn: "📄 TXT",
+        searchPlaceholder: "🔍 Qidiruv (nom, login, sayt)...",
+        catAll: "Barchasi",
+        catSites: "🌐 Saytlar",
+        catCards: "💳 Kartalar",
+        catWifi: "📶 Wi-Fi",
+        catDocs: "🪪 Hujjatlar",
+        catNotes: "📝 Eslatmalar",
+        navVault: "Ombor",
+        navGen: "Generator",
+        navSet: "Sozlamalar",
+        genTitle: "Parol Generatori",
+        genSub: "Xavfsiz tasodifiy parollar, so'zlar va PIN-kodlar",
+        genRefresh: "🔄 Yangilash",
+        genCopy: "📋 Nusxalash",
+        genSave: "💾 Omborga Saqlash",
+        setTitle: "Sozlamalar va Zaxira",
+        setSub: "Ko'p qatlamli xotira, til va tashqi ko'rinish",
+        langHeader: "🌐 Ilova Tili (Language / Til / Язык)",
+        themeHeader: "🎨 Mavzu va Ranglar (Theme)",
+        snapTitle: "🕒 Avtomatik Tiklash Nuqtalari (Snapshots)",
+        snapDesc: "Har bir o'zgarishda saqlanib boruvchi nuqtalar. Kerak bo'lsa orqaga qaytishingiz mumkin.",
+        txtTitle: "📄 Barcha Parollarni .TXT Faylga Olish",
+        txtBtnAction: "📥 Barcha Parollarni TXT ga Saqlash",
+        backupBtn: "🔒 Shifrlangan Backup Faylini Yuklab Olish (.json)",
+        lockBtn: "🔐 Omborni Qulflash",
+        dangerTitle: "Xavfli Hudud",
+        wipeBtn: "🗑️ Barcha Ma'lumotlarni Tozalash",
+        trashTitle: "🗑️ Chiqindi Qutisi",
+        trashBack: "← Omborga",
+        trashNotice: "🛡️ O'chirilgan barcha yozuvlar shu yerda saqlanadi. Istalgan payt bitta tugma bilan qayta tiklashingiz mumkin.",
+        detailBack: "← Orqaga",
+        detailEdit: "✏️ Tahrirlash",
+        detailTrash: "🗑️ Chiqindiga",
+        detTotpTitle: "🔢 2FA KODI (AUTHENTICATOR)",
+        detTotpCopy: "📋 2FA Kodini Nusxalash",
+        createTitle: "Yangi Yozuv Qo'shish",
+        editTitle: "Yozuvni Tahrirlash",
+        formSave: "💾 Xavfsiz Shifrlab Saqlash",
+        cancel: "Bekor qilish",
+        wipeConfirmPrompt: "DIQQAT: Barcha parollar butunlay yo'q qilinadi!\nTasdiqlash uchun 'OCHIRISH' so'zini yozing:"
+      },
+      ru: {
+        badgeOffline: '100% ОФЛАЙН',
+        copied: 'Скопировано!',
+        saved: 'Сохранено!',
+        deleted: 'Перемещено в корзину!',
+        restored: 'Восстановлено!',
+        setupSub: "Все данные шифруются по стандарту AES-256 только в памяти телефона",
+        setupPassLabel: "Мастер-пароль (не менее 8 символов)",
+        setupConfirmLabel: "Повторите пароль",
+        setupBtn: "🚀 Активировать Хранилище",
+        recTitle: "Экстренный Ключ Восстановления",
+        recDesc: "Если вы забудете мастер-пароль, этот ключ восстановит 100% данных!",
+        recYourKey: "Ваш Экстренный Ключ:",
+        recCopyBtn: "📋 Скопировать Ключ",
+        recDlBtn: "📥 Скачать Инструкцию (.txt)",
+        recEnterBtn: "✅ Сохранил, Войти в Приложение",
+        unlockTitle: "SecurePass Заблокирован",
+        unlockSub: "Введите мастер-пароль для доступа к хранилищу",
+        unlockBtn: "🔓 Разблокировать",
+        forgotLink: "Забыли пароль? Восстановить ключом",
+        vaultHeading: "Мои Пароли",
+        trashBtn: "🗑️ Корзина",
+        txtBtn: "📄 TXT",
+        searchPlaceholder: "🔍 Поиск (название, логин, сайт)...",
+        catAll: "Все",
+        catSites: "🌐 Сайты",
+        catCards: "💳 Карты",
+        catWifi: "📶 Wi-Fi",
+        catDocs: "🪪 Документы",
+        catNotes: "📝 Заметки",
+        navVault: "Хранилище",
+        navGen: "Генератор",
+        navSet: "Настройки",
+        genTitle: "Генератор Паролей",
+        genSub: "Надежные случайные пароли, фразы и PIN-коды",
+        genRefresh: "🔄 Обновить",
+        genCopy: "📋 Скопировать",
+        genSave: "💾 Сохранить в Хранилище",
+        setTitle: "Настройки и Резерв",
+        setSub: "Многоуровневая защита, язык и внешний вид",
+        langHeader: "🌐 Язык Приложения (Language / Til / Язык)",
+        themeHeader: "🎨 Цветовая Тема (Theme)",
+        snapTitle: "🕒 Точки Авто-Восстановления (Snapshots)",
+        snapDesc: "Сохраняются при каждом изменении. Можно откатиться назад в любой момент.",
+        txtTitle: "📄 Скачать Все Пароли в .TXT",
+        txtBtnAction: "📥 Скачать Все Пароли в TXT",
+        backupBtn: "🔒 Скачать Зашифрованный Бэкап (.json)",
+        lockBtn: "🔐 Заблокировать",
+        dangerTitle: "Опасная Зона",
+        wipeBtn: "🗑️ Полное Удаление Всех Данных",
+        trashTitle: "🗑️ Корзина",
+        trashBack: "← В хранилище",
+        trashNotice: "🛡️ Все удаленные записи хранятся здесь. Вы можете восстановить их в любой момент.",
+        detailBack: "← Назад",
+        detailEdit: "✏️ Редактировать",
+        detailTrash: "🗑️ В корзину",
+        detTotpTitle: "🔢 2FA КОД (AUTHENTICATOR)",
+        detTotpCopy: "📋 Скопировать 2FA Код",
+        createTitle: "Новая Запись",
+        editTitle: "Редактирование Записи",
+        formSave: "💾 Безопасно Сохранить",
+        cancel: "Отмена",
+        wipeConfirmPrompt: "ВНИМАНИЕ: Все данные будут стёрты безвозвратно!\nДля подтверждения введите слово 'УДАЛИТЬ':"
+      },
+      en: {
+        badgeOffline: '100% OFFLINE',
+        copied: 'Copied to clipboard!',
+        saved: 'Saved successfully!',
+        deleted: 'Moved to Trash!',
+        restored: 'Restored to Vault!',
+        setupSub: "All credentials are encrypted locally with AES-256 in phone memory",
+        setupPassLabel: "Master Password (min 8 characters)",
+        setupConfirmLabel: "Confirm Password",
+        setupBtn: "🚀 Initialize Vault",
+        recTitle: "Emergency Recovery Key",
+        recDesc: "If you ever forget your master password, this key recovers 100% of your data!",
+        recYourKey: "Your Emergency Key:",
+        recCopyBtn: "📋 Copy Key",
+        recDlBtn: "📥 Download Recovery Kit (.txt)",
+        recEnterBtn: "✅ Saved Key, Enter Vault",
+        unlockTitle: "SecurePass Locked",
+        unlockSub: "Enter master password to access your encrypted vault",
+        unlockBtn: "🔓 Unlock Vault",
+        forgotLink: "Forgot password? Recover with emergency key",
+        vaultHeading: "My Passwords",
+        trashBtn: "🗑️ Trash",
+        txtBtn: "📄 TXT",
+        searchPlaceholder: "🔍 Search (title, username, url)...",
+        catAll: "All",
+        catSites: "🌐 Logins",
+        catCards: "💳 Cards",
+        catWifi: "📶 Wi-Fi",
+        catDocs: "🪪 ID Docs",
+        catNotes: "📝 Notes",
+        navVault: "Vault",
+        navGen: "Generator",
+        navSet: "Settings",
+        genTitle: "Password Generator",
+        genSub: "Cryptographically secure random passwords and PINs",
+        genRefresh: "🔄 Regenerate",
+        genCopy: "📋 Copy",
+        genSave: "💾 Save to Vault",
+        setTitle: "Settings & Redundancy",
+        setSub: "Multi-layer storage, language and themes",
+        langHeader: "🌐 Language / Til / Язык",
+        themeHeader: "🎨 Theme & Palette",
+        snapTitle: "🕒 Auto-Snapshots (Restore Points)",
+        snapDesc: "Created on every change. Roll back anytime if needed.",
+        txtTitle: "📄 Export All Passwords as .TXT",
+        txtBtnAction: "📥 Export All Passwords to TXT",
+        backupBtn: "🔒 Download Encrypted Backup (.json)",
+        lockBtn: "🔐 Lock Vault",
+        dangerTitle: "Danger Zone",
+        wipeBtn: "🗑️ Factory Reset & Wipe Data",
+        trashTitle: "🗑️ Trash",
+        trashBack: "← To Vault",
+        trashNotice: "🛡️ All deleted items remain safe here. You can restore them anytime.",
+        detailBack: "← Back",
+        detailEdit: "✏️ Edit",
+        detailTrash: "🗑️ Move to Trash",
+        detTotpTitle: "🔢 2FA CODE (AUTHENTICATOR)",
+        detTotpCopy: "📋 Copy 2FA Code",
+        createTitle: "New Item",
+        editTitle: "Edit Item",
+        formSave: "💾 Securely Save",
+        cancel: "Cancel",
+        wipeConfirmPrompt: "WARNING: All passwords will be wiped permanently!\nType 'DELETE' to confirm:"
+      }
+    };
+
+    // --- MAVZULAR (THEMES) ---
+    const THEMES = {
+      slate: {
+        '--bg-dark': '#090D16',
+        '--card-bg': '#0F172A',
+        '--card-border': '#1E293B',
+        '--text-main': '#F8FAFC',
+        '--text-muted': '#94A3B8',
+        '--primary': '#2563EB',
+        '--accent': '#38BDF8',
+        '--success': '#10B981',
+        '--warning': '#F59E0B',
+        '--danger': '#EF4444'
+      },
+      oled: {
+        '--bg-dark': '#000000',
+        '--card-bg': '#0A0A0A',
+        '--card-border': '#1F1F1F',
+        '--text-main': '#FFFFFF',
+        '--text-muted': '#A1A1AA',
+        '--primary': '#10B981',
+        '--accent': '#34D399',
+        '--success': '#10B981',
+        '--warning': '#FBBF24',
+        '--danger': '#F87171'
+      },
+      navy: {
+        '--bg-dark': '#020617',
+        '--card-bg': '#0B132B',
+        '--card-border': '#1C2541',
+        '--text-main': '#F0F9FF',
+        '--text-muted': '#7DD3FC',
+        '--primary': '#0284C7',
+        '--accent': '#38BDF8',
+        '--success': '#10B981',
+        '--warning': '#F59E0B',
+        '--danger': '#EF4444'
+      }
+    };
+
+    let currentLang = localStorage.getItem('sp_lang') || 'uz';
+    let currentTheme = localStorage.getItem('sp_theme') || 'slate';
+
+    function applyLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('sp_lang', lang);
+      const t = I18N[lang] || I18N.uz;
+
+      document.getElementById('badge-offline-txt').innerText = t.badgeOffline;
+      document.getElementById('t-setup-sub').innerText = t.setupSub;
+      document.getElementById('t-setup-pass-label').innerText = t.setupPassLabel;
+      document.getElementById('t-setup-confirm-label').innerText = t.setupConfirmLabel;
+      document.getElementById('t-setup-btn').innerText = t.setupBtn;
+
+      document.getElementById('t-rec-title').innerText = t.recTitle;
+      document.getElementById('t-rec-desc').innerText = t.recDesc;
+      document.getElementById('t-rec-your-key').innerText = t.recYourKey;
+      document.getElementById('t-rec-copy-btn').innerText = t.recCopyBtn;
+      document.getElementById('t-rec-dl-btn').innerText = t.recDlBtn;
+      document.getElementById('t-rec-enter-btn').innerText = t.recEnterBtn;
+
+      document.getElementById('t-unlock-title').innerText = t.unlockTitle;
+      document.getElementById('t-unlock-sub').innerText = t.unlockSub;
+      document.getElementById('t-unlock-btn').innerText = t.unlockBtn;
+      document.getElementById('t-forgot-link').innerText = t.forgotLink;
+
+      document.getElementById('t-vault-heading').innerText = t.vaultHeading;
+      document.getElementById('t-vault-trash-btn').innerText = t.trashBtn;
+      document.getElementById('t-vault-txt-btn').innerText = t.txtBtn;
+      document.getElementById('search-input').placeholder = t.searchPlaceholder;
+
+      document.getElementById('cat-t-all').innerText = t.catAll;
+      document.getElementById('cat-t-login').innerText = t.catSites;
+      document.getElementById('cat-t-card').innerText = t.catCards;
+      document.getElementById('cat-t-wifi').innerText = t.catWifi;
+      document.getElementById('cat-t-id_doc').innerText = t.catDocs;
+      document.getElementById('cat-t-note').innerText = t.catNotes;
+
+      document.getElementById('t-nav-vault').innerText = t.navVault;
+      document.getElementById('t-nav-gen').innerText = t.navGen;
+      document.getElementById('t-nav-set').innerText = t.navSet;
+
+      document.getElementById('t-gen-title').innerText = t.genTitle;
+      document.getElementById('t-gen-subtitle').innerText = t.genSub;
+      document.getElementById('t-gen-refresh').innerText = t.genRefresh;
+      document.getElementById('t-gen-copy').innerText = t.genCopy;
+      document.getElementById('t-gen-save-btn').innerText = t.genSave;
+
+      document.getElementById('t-set-title').innerText = t.setTitle;
+      document.getElementById('t-set-subtitle').innerText = t.setSub;
+      document.getElementById('t-lang-header').innerText = t.langHeader;
+      document.getElementById('t-theme-header').innerText = t.themeHeader;
+      document.getElementById('t-snap-title').innerText = t.snapTitle;
+      document.getElementById('t-snap-desc').innerText = t.snapDesc;
+      document.getElementById('t-txt-title').innerText = t.txtTitle;
+      document.getElementById('t-txt-btn-action').innerText = t.txtBtnAction;
+      document.getElementById('t-backup-btn').innerText = t.backupBtn;
+      document.getElementById('t-lock-btn').innerText = t.lockBtn;
+      document.getElementById('t-danger-title').innerText = t.dangerTitle;
+      document.getElementById('t-wipe-btn').innerText = t.wipeBtn;
+
+      document.getElementById('t-trash-title').innerText = t.trashTitle;
+      document.getElementById('t-trash-back').innerText = t.trashBack;
+      document.getElementById('t-trash-notice').innerText = t.trashNotice;
+
+      document.getElementById('t-detail-back').innerText = t.detailBack;
+      document.getElementById('t-detail-edit').innerText = t.detailEdit;
+      document.getElementById('t-detail-trash').innerText = t.detailTrash;
+      document.getElementById('t-det-totp-title').innerText = t.detTotpTitle;
+      document.getElementById('t-det-totp-copy').innerText = t.detTotpCopy;
+
+      document.getElementById('t-cancel-btn-1').innerText = t.cancel;
+      document.getElementById('t-cancel-btn-2').innerText = t.cancel;
+      document.getElementById('t-form-save-btn').innerText = t.formSave;
+
+      ['uz', 'ru', 'en'].forEach(l => {
+        const b = document.getElementById('lang-btn-' + l);
+        if (b) b.classList.toggle('active', l === lang);
+        const sb = document.getElementById('setup-lang-' + l);
+        if (sb) sb.classList.toggle('active', l === lang);
+      });
+    }
+
+    function changeLanguage(lang) {
+      applyLanguage(lang);
+      showToast(I18N[lang].saved);
+    }
+
+    function applyTheme(themeName) {
+      currentTheme = themeName;
+      localStorage.setItem('sp_theme', themeName);
+      const vars = THEMES[themeName] || THEMES.slate;
+      const root = document.documentElement;
+      for (const [key, val] of Object.entries(vars)) {
+        root.style.setProperty(key, val);
+      }
+      ['slate', 'oled', 'navy'].forEach(th => {
+        const b = document.getElementById('theme-btn-' + th);
+        if (b) b.classList.toggle('active', th === themeName);
+      });
+    }
+
+    function changeTheme(themeName) {
+      applyTheme(themeName);
+      showToast("Mavzu o'zgardi / Тема изменена / Theme changed");
+    }
+
+    // --- 100% OFFLINE BAZA VA KRIPTO ---
+    const DB_KEYS = {
+      SALT: 'sp_salt',
+      HASH: 'sp_hash',
+      ITEMS: 'sp_items',
+      SNAPSHOTS: 'sp_snapshots',
+      RECOVERY: 'sp_recovery',
+      FAILED_ATTEMPTS: 'sp_failed_attempts',
+      LOCKOUT: 'sp_lockout'
+    };
+
+    let activeKey = null;
+    let activeSalt = null;
+    let currentCategoryFilter = 'all';
+    let currentFormCategory = 'login';
+    let currentDetailItem = null;
+    let currentGenMode = 'random';
+    let autoClearTimer = null;
+    let liveTotpTimer = null;
+    let currentLiveTotpCode = '';
+    let generatedRecoveryKey = '';
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2200);
+    }
+
+    function bufferToBase64(buf) {
+      const bytes = new Uint8Array(buf);
+      let bin = '';
+      for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      return btoa(bin);
+    }
+    function base64ToBuffer(b64) {
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return bytes;
+    }
+
+    // --- 2FA / TOTP ENGINE (RFC 6238 MUKAMMAL STANDART) ---
+    const BASE32_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+
+    function base32ToBytes(b32) {
+      const clean = b32.replace(/[\s\-_=]/g, '').toUpperCase();
+      let bits = 0;
+      let val = 0;
+      const bytes = [];
+      for (let i = 0; i < clean.length; i++) {
+        const c = clean[i];
+        const v = BASE32_CHARS.indexOf(c);
+        if (v === -1) continue;
+        val = (val << 5) | v;
+        bits += 5;
+        if (bits >= 8) {
+          bytes.push((val >>> (bits - 8)) & 255);
+          bits -= 8;
+          val = val & ((1 << bits) - 1);
+        }
+      }
+      return new Uint8Array(bytes);
+    }
+
+    function parseTotpSecret(secretInput) {
+      if (!secretInput) return '';
+      const s = secretInput.trim();
+      if (s.startsWith('otpauth://')) {
+        const match = s.match(/secret=([A-Za-z0-9]+)/i);
+        if (match) return match[1].toUpperCase();
+      }
+      return s.replace(/\s+/g, '').toUpperCase();
+    }
+
+    async function calculateTotp(secretStr) {
+      const cleanSecret = parseTotpSecret(secretStr);
+      if (!cleanSecret) return { code: '------', secondsRemaining: 30 };
+
+      const keyBytes = base32ToBytes(cleanSecret);
+      if (keyBytes.length === 0) return { code: '------', secondsRemaining: 30 };
+
+      const nowSec = Math.floor(Date.now() / 1000);
+      const counter = Math.floor(nowSec / 30);
+      const secondsRemaining = 30 - (nowSec % 30);
+
+      const buf = new ArrayBuffer(8);
+      const view = new DataView(buf);
+      view.setUint32(0, 0, false);
+      view.setUint32(4, counter, false);
+
+      const cryptoKey = await crypto.subtle.importKey(
+        'raw', keyBytes, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']
+      );
+      const sig = await crypto.subtle.sign('HMAC', cryptoKey, buf);
+      const hmac = new Uint8Array(sig);
+
+      const offset = hmac[hmac.length - 1] & 0x0f;
+      const bin =
+        ((hmac[offset] & 0x7f) << 24) |
+        ((hmac[offset + 1] & 0xff) << 16) |
+        ((hmac[offset + 2] & 0xff) << 8) |
+        (hmac[offset + 3] & 0xff);
+
+      const otp = bin % 1000000;
+      const code = otp.toString().padStart(6, '0');
+      return { code, secondsRemaining };
+    }
+
+    // --- AES-256 VA PBKDF2 ---
+    async function deriveKey(password, salt) {
+      const enc = new TextEncoder();
+      const baseKey = await crypto.subtle.importKey(
+        'raw', enc.encode(password), { name: 'PBKDF2' }, false, ['deriveKey', 'deriveBits']
+      );
+      return await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+        baseKey,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+      );
+    }
+
+    async function hashPassword(password, salt) {
+      const enc = new TextEncoder();
+      const baseKey = await crypto.subtle.importKey(
+        'raw', enc.encode(password), { name: 'PBKDF2' }, false, ['deriveBits']
+      );
+      const bits = await crypto.subtle.deriveBits(
+        { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+        baseKey, 256
+      );
+      return bufferToBase64(bits);
+    }
+
+    async function encryptObject(obj, key) {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const enc = new TextEncoder();
+      const cipher = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        enc.encode(JSON.stringify(obj))
+      );
+      return {
+        ciphertext: bufferToBase64(cipher),
+        iv: bufferToBase64(iv)
+      };
+    }
+
+    async function decryptObject(payload, key) {
+      const iv = base64ToBuffer(payload.iv);
+      const cipher = base64ToBuffer(payload.ciphertext);
+      const plain = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        cipher
+      );
+      const dec = new TextDecoder();
+      return JSON.parse(dec.decode(plain));
+    }
+
+    function createRecoveryKeyString() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let k = 'SECURE';
+      for (let i = 0; i < 4; i++) {
+        let b = '';
+        for (let j = 0; j < 4; j++) b += chars[Math.floor(Math.random() * chars.length)];
+        k += '-' + b;
+      }
+      return k;
+    }
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const target = document.getElementById(screenId);
+      if (target) target.classList.add('active');
+
+      const bottomNav = document.getElementById('bottom-nav');
+      if (['screen-setup', 'screen-recovery-key', 'screen-unlock', 'screen-forgot-unlock'].includes(screenId)) {
+        bottomNav.style.display = 'none';
+      } else {
+        bottomNav.style.display = 'flex';
+      }
+
+      if (screenId !== 'screen-detail') {
+        clearInterval(liveTotpTimer);
+      }
+    }
+
+    function switchTab(screenId, btn) {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      showScreen(screenId);
+      if (screenId === 'screen-vault') renderVault();
+      if (screenId === 'screen-settings') renderSnapshots();
+      if (screenId === 'screen-generator') regeneratePassword();
+    }
+
+    async function handleSetup() {
+      const p1 = document.getElementById('setup-pass').value;
+      const p2 = document.getElementById('setup-confirm').value;
+
+      if (p1.length < 8) {
+        alert("Master parol kamida 8 ta belgidan iborat bo'lishi kerak / Пароль минимум 8 символов!");
+        return;
+      }
+      if (p1 !== p2) {
+        alert("Parollar bir-biriga mos kelmadi / Пароли не совпадают!");
+        return;
+      }
+
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const hash = await hashPassword(p1, salt);
+      activeKey = await deriveKey(p1, salt);
+      activeSalt = salt;
+
+      generatedRecoveryKey = createRecoveryKeyString();
+      const recSalt = crypto.getRandomValues(new Uint8Array(16));
+      const recKey = await deriveKey(generatedRecoveryKey, recSalt);
+      const recPayload = await encryptObject({ verify: 'OK', salt: bufferToBase64(salt) }, recKey);
+
+      localStorage.setItem(DB_KEYS.SALT, bufferToBase64(salt));
+      localStorage.setItem(DB_KEYS.HASH, hash);
+      localStorage.setItem(DB_KEYS.ITEMS, JSON.stringify([]));
+      localStorage.setItem(DB_KEYS.SNAPSHOTS, JSON.stringify([]));
+      localStorage.setItem(DB_KEYS.RECOVERY, JSON.stringify({ payload: recPayload, salt: bufferToBase64(recSalt) }));
+
+      await saveAutoSnapshot("Ombor ilk bor ishga tushirildi");
+
+      document.getElementById('recovery-key-display').innerText = generatedRecoveryKey;
+      showScreen('screen-recovery-key');
+    }
+
+    function copyRecoveryKey() {
+      navigator.clipboard.writeText(generatedRecoveryKey);
+      showToast(I18N[currentLang].copied);
+    }
+
+    function downloadRecoveryKit() {
+      const txt = `SECUREPASS RECOVERY KEY / КЛЮЧ ВОССТАНОВЛЕНИЯ\n` +
+                  `Date: ${new Date().toLocaleString()}\n\n` +
+                  `KEY: ${generatedRecoveryKey}\n\n` +
+                  `Keep this key safe! It restores your entire vault if you forget your master password.`;
+      const blob = new Blob([txt], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `SecurePass_Emergency_Key.txt`;
+      a.click();
+      showToast(I18N[currentLang].saved);
+    }
+
+    function finishSetupAndEnter() {
+      showToast("SecurePass Faollashtirildi!");
+      switchTab('screen-vault', document.getElementById('nav-btn-vault'));
+    }
+
+    async function handleUnlock() {
+      const p = document.getElementById('unlock-pass').value;
+      const saltB64 = localStorage.getItem(DB_KEYS.SALT);
+      const storedHash = localStorage.getItem(DB_KEYS.HASH);
+
+      if (!saltB64 || !storedHash) return;
+
+      const salt = base64ToBuffer(saltB64);
+      const currentHash = await hashPassword(p, salt);
+
+      if (currentHash === storedHash) {
+        activeSalt = salt;
+        activeKey = await deriveKey(p, salt);
+        document.getElementById('unlock-pass').value = '';
+        showToast(I18N[currentLang].copied ? "Qulf ochildi!" : "Unlocked!");
+        switchTab('screen-vault', document.getElementById('nav-btn-vault'));
+      } else {
+        alert("Noto'g'ri master parol! / Неверный пароль!");
+      }
+    }
+
+    function openRecoveryPrompt() {
+      showScreen('screen-forgot-unlock');
+    }
+
+    async function handleEmergencyRecover() {
+      const k = document.getElementById('recover-key-input').value.trim().toUpperCase();
+      const newP = document.getElementById('recover-new-pass').value;
+      if (!k || newP.length < 8) {
+        alert("To'g'ri kalit va kamida 8 ta belgili yangi parol kiriting!");
+        return;
+      }
+
+      const recRaw = localStorage.getItem(DB_KEYS.RECOVERY);
+      if (!recRaw) return;
+
+      try {
+        const { payload, salt: recSaltB64 } = JSON.parse(recRaw);
+        const recKey = await deriveKey(k, base64ToBuffer(recSaltB64));
+        const dec = await decryptObject(payload, recKey);
+
+        if (dec && dec.verify === 'OK') {
+          const newSalt = crypto.getRandomValues(new Uint8Array(16));
+          const newHash = await hashPassword(newP, newSalt);
+          activeKey = await deriveKey(newP, newSalt);
+          activeSalt = newSalt;
+
+          localStorage.setItem(DB_KEYS.SALT, bufferToBase64(newSalt));
+          localStorage.setItem(DB_KEYS.HASH, newHash);
+          await saveAutoSnapshot("Favqulodda kalit bilan yangi parol o'rnatildi");
+
+          showToast(I18N[currentLang].saved);
+          switchTab('screen-vault', document.getElementById('nav-btn-vault'));
+        }
+      } catch (e) {
+        alert("Noto'g'ri tiklash kaliti!");
+      }
+    }
+
+    function lockVault() {
+      activeKey = null;
+      showScreen('screen-unlock');
+      showToast("Qulflangan / Заблокировано / Locked");
+    }
+
+    // --- VAULT VA CHIQINDI QUTISI ---
+    async function renderVault() {
+      if (!activeKey) return;
+      const listEl = document.getElementById('vault-list');
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const raw = localStorage.getItem(DB_KEYS.ITEMS);
+      const items = raw ? JSON.parse(raw) : [];
+
+      listEl.innerHTML = '';
+      let count = 0;
+
+      for (const rec of items) {
+        if (rec.isDeleted) continue;
+        if (currentCategoryFilter !== 'all' && rec.category !== currentCategoryFilter) continue;
+        if (search && !rec.title.toLowerCase().includes(search)) continue;
+
+        count++;
+        const card = document.createElement('div');
+        card.className = 'vault-card';
+
+        let icon = '🌐';
+        if (rec.category === 'card') icon = '💳';
+        if (rec.category === 'wifi') icon = '📶';
+        if (rec.category === 'id_doc') icon = '🪪';
+        if (rec.category === 'note') icon = '📝';
+
+        let hasTotp = false;
+        try {
+          const dec = await decryptObject(rec.payload, activeKey);
+          if (dec.totpSecret) hasTotp = true;
+        } catch (e) {}
+
+        card.innerHTML = `
+          <div class="card-icon">${icon}</div>
+          <div class="card-details">
+            <div class="card-title">
+              ${rec.title}
+              ${hasTotp ? '<span class="card-badge-totp">2FA</span>' : ''}
+            </div>
+            <div class="card-sub">${rec.category.toUpperCase()} • AES-256</div>
+          </div>
+          <button class="copy-chip" onclick="event.stopPropagation(); quickCopy('${rec.id}')">${I18N[currentLang].copied.slice(0, 5)}</button>
+        `;
+
+        card.onclick = () => openDetail(rec.id);
+        listEl.appendChild(card);
+      }
+
+      if (count === 0) {
+        listEl.innerHTML = `
+          <div style="text-align: center; margin-top: 50px; color: var(--text-muted);">
+            <div style="font-size: 40px; margin-bottom: 8px;">📭</div>
+            <p>${I18N[currentLang].emptyTitle}</p>
+          </div>
+        `;
+      }
+    }
+
+    function filterCat(cat) {
+      currentCategoryFilter = cat;
+      document.querySelectorAll('.cat-chips .chip').forEach(c => {
+        c.classList.toggle('active', c.getAttribute('data-cat') === cat);
+      });
+      renderVault();
+    }
+
+    async function quickCopy(id) {
+      const item = await getDecryptedItem(id);
+      if (!item) return;
+      const val = item.password || item.wifiPassword || item.cardNumber || item.docNumber || item.notes;
+      if (val) {
+        navigator.clipboard.writeText(val);
+        showToast(I18N[currentLang].copied);
+        clearTimeout(autoClearTimer);
+        autoClearTimer = setTimeout(() => {
+          navigator.clipboard.writeText('');
+        }, 30000);
+      }
+    }
+
+    async function getDecryptedItem(id) {
+      const raw = localStorage.getItem(DB_KEYS.ITEMS);
+      const items = raw ? JSON.parse(raw) : [];
+      const found = items.find(i => i.id === id);
+      if (!found) return null;
+      const plain = await decryptObject(found.payload, activeKey);
+      return { ...plain, id: found.id, category: found.category, title: found.title, isDeleted: found.isDeleted };
+    }
+
+    async function openTrashScreen() {
+      const listEl = document.getElementById('trash-list');
+      const raw = localStorage.getItem(DB_KEYS.ITEMS);
+      const items = raw ? JSON.parse(raw) : [];
+      const trashed = items.filter(i => i.isDeleted);
+
+      listEl.innerHTML = '';
+      if (trashed.length === 0) {
+        listEl.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);">Chiqindi bo'sh / Корзина пуста / Trash empty</div>`;
+      }
+
+      for (const rec of trashed) {
+        const row = document.createElement('div');
+        row.className = 'trash-card';
+        row.innerHTML = `
+          <div>
+            <div style="font-size:15px; font-weight:700;">${rec.title}</div>
+            <div style="font-size:11px; color:var(--warning);">Xavfsiz saqlanmoqda</div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="copy-chip" style="color:var(--success); border-color:var(--success);" onclick="restoreItem('${rec.id}')">↩️ Qaytarish</button>
+            <button class="copy-chip" style="color:var(--danger); border-color:#7F1D1D;" onclick="permanentlyDeleteItem('${rec.id}')">❌ O'chirish</button>
+          </div>
+        `;
+        listEl.appendChild(row);
+      }
+
+      showScreen('screen-trash');
+    }
+
+    async function deleteCurrentItem() {
+      if (!currentDetailItem) return;
+      const raw = localStorage.getItem(DB_KEYS.ITEMS);
+      let items = raw ? JSON.parse(raw) : [];
+      const idx = items.findIndex(i => i.id === currentDetailItem.id);
+      if (idx >= 0) {
+        items[idx].isDeleted = true;
+        localStorage.setItem(DB_KEYS.ITEMS, JSON.stringify(items));
+        await saveAutoSnapshot(`Chiqindiga: ${items[idx].title}`);
+        showToast(I18N[currentLang].deleted);
+        showScreen('screen-vault');
+        renderVault();
+      }
+    }
+
+    async function restoreItem(id) {
+      const raw = localStorage.getItem(DB_KEYS.ITEMS);
+      let items = raw ? JSON.parse(raw) : [];
+      const idx = items.findIndex(i => i.id === id);
+      if (idx >= 0) {
+        items[idx].isDeleted = false;
+        localStorage.setItem(DB_KEYS.ITEMS, JSON.stringify(items));
+        await saveAutoSnapshot(`Tiklandi: ${items[idx].title}`);
+        showToast(I18N[currentLang].restored);
+        openTrashScreen();
+      }
+    }
+
+    async function permanentlyDeleteItem(id) {
+      if (!confirm("O'chirmoqchimisiz? / Удалить навсегда?")) return;
+      const raw = localStorage.getItem(DB_KEYS.ITEMS);
+      let items = raw ? JSON.parse(raw) : [];
+      items = items.filter(i => i.id !== id);
+      localStorage.setItem(DB_KEYS.ITEMS, JSON.stringify(items));
+      await saveAutoSnapshot(`Butunlay o'chirildi`);
+      openTrashScreen();
+    }
+
+    // --- AVTO-SNAPSHOTLAR ---
+    async function saveAutoSnapshot(label) {
+      try {
+        const rawItems = localStorage.getItem(DB_KEYS.ITEMS) || '[]';
+        const rawSnaps = localStorage.getItem(DB_KEYS.SNAPSHOTS);
+        const snaps = rawSnaps ? JSON.parse(rawSnaps) : [];
+
+        const newSnap = {
+          id: 'snap_' + Date.now(),
+          time: new Date().toLocaleTimeString(),
+          label,
+          data: rawItems
+        };
+
+        const updated = [newSnap, ...snaps].slice(0, 15);
+        localStorage.setItem(DB_KEYS.SNAPSHOTS, JSON.stringify(updated));
+      } catch (e) {}
+    }
+
+    function renderSnapshots() {
+      const raw = localStorage.getItem(DB_KEYS.SNAPSHOTS);
+      const snaps = raw ? JSON.parse(raw) : [];
+      const listEl = document.getElementById('snapshots-list');
+      document.getElementById('snap-count').innerText = snaps.length + ' ta';
+      listEl.innerHTML = '';
+
+      if (snaps.length === 0) {
+        listEl.innerHTML = `<div style="color:var(--text-muted); font-size:12px;">Nuqtalar mavjud emas</div>`;
+        return;
+      }
+
+      snaps.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'snap-card';
+        card.innerHTML = `
+          <div>
+            <div style="font-size:12px; font-weight:700;">${s.label}</div>
+            <div style="font-size:10px; color:var(--text-muted);">${s.time}</div>
+          </div>
+          <button class="copy-chip" onclick="rollbackToSnap('${s.id}')">⏪ Qaytish</button>
+        `;
+        listEl.appendChild(card);
+      });
+    }
+
+    async function rollbackToSnap(snapId) {
+      if (!confirm("Shu nuqtaga orqaga qaytmoqchimisiz? / Откатиться?")) return;
+      const raw = localStorage.getItem(DB_KEYS.SNAPSHOTS);
+      const snaps = raw ? JSON.parse(raw) : [];
+      const found = snaps.find(s => s.id === snapId);
+      if (found) {
+        localStorage.setItem(DB_KEYS.ITEMS, found.data);
+        await saveAutoSnapshot(`Orqaga: ${found.label}`);
+        showToast(I18N[currentLang].restored);
+        renderSnapshots();
+        renderVault();
+      }
+    }
+
+    // --- TXT VA ZAXIRA ---
+    async function downloadAsTxtFile() {
+      if (!activeKey) return;
+      const raw = localStorage.getItem(DB_KEYS.ITEMS);
+      const items = raw ? JSON.parse(raw) : [];
+
+      let txt = `======================================================================\n` +
+                `          SECUREPASS - EXPORT REPORT (.TXT)                           \n` +
+                `Date: ${new Date().toLocaleString()}\n` +
+                `Total items: ${items.length}\n` +
+                `======================================================================\n\n`;
+
+      let idx = 1;
+      for (const rec of items) {
+        if (rec.isDeleted) continue;
+        const item = await decryptObject(rec.payload, activeKey);
+        txt += `[${idx++}] ${rec.title.toUpperCase()} (${rec.category.toUpperCase()})\n`;
+        if (item.username) txt += `Login:    ${item.username}\n`;
+        if (item.password) txt += `Password: ${item.password}\n`;
+        if (item.totpSecret) txt += `2FA Key:  ${item.totpSecret}\n`;
+        if (item.url) txt += `URL:      ${item.url}\n`;
+        if (item.cardNumber) txt += `Card:     ${item.cardNumber}\n`;
+        if (item.notes) txt += `Notes:    ${item.notes}\n`;
+        txt += `\n`;
+      }
+
+      const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `SecurePass_Export_${Date.now()}.txt`;
+      a.click();
+      showToast(I18N[currentLang].saved);
+    }
+
+    function exportEncryptedBackup() {
+      const backup = {
+        appName: 'SecurePass',
+        version: 4,
+        exportedAt: new Date().toISOString(),
+        salt: localStorage.getItem(DB_KEYS.SALT),
+        encryptedItems: localStorage.getItem(DB_KEYS.ITEMS),
+        snapshots: localStorage.getItem(DB_KEYS.SNAPSHOTS)
+      };
+
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `SecurePass_Backup_${Date.now()}.json`;
+      a.click();
+      showToast(I18N[currentLang].saved);
+    }
+
+    function safeWipeAllData() {
+      const confirmWord = prompt(I18N[currentLang].wipeConfirmPrompt);
+      if (confirmWord === 'OCHIRISH' || confirmWord === 'УДАЛИТЬ' || confirmWord === 'DELETE') {
+        localStorage.clear();
+        activeKey = null;
+        showToast("Tozalandi / Очищено / Wiped");
+        showScreen('screen-setup');
+      } else {
+        alert("Bekor qilindi / Отменено / Cancelled");
+      }
+    }
+
+    // --- FORMA VA TAFSILOTLAR ---
+    function openAddModal() {
+      document.getElementById('edit-item-id').value = '';
+      document.getElementById('create-modal-title').innerText = I18N[currentLang].createTitle;
+      document.getElementById('item-title').value = '';
+      document.getElementById('item-username').value = '';
+      document.getElementById('item-password').value = '';
+      document.getElementById('item-totp').value = '';
+      document.getElementById('item-url').value = '';
+      document.getElementById('item-cardnumber').value = '';
+      document.getElementById('item-expiry').value = '';
+      document.getElementById('item-cvv').value = '';
+      document.getElementById('item-wifissid').value = '';
+      document.getElementById('item-wifipassword').value = '';
+      document.getElementById('item-docnumber').value = '';
+      document.getElementById('item-notes').value = '';
+      setFormCategory('login');
+      showScreen('screen-create');
+    }
+
+    function editCurrentItem() {
+      if (!currentDetailItem) return;
+      document.getElementById('edit-item-id').value = currentDetailItem.id;
+      document.getElementById('create-modal-title').innerText = I18N[currentLang].editTitle;
+      document.getElementById('item-title').value = currentDetailItem.title || '';
+      document.getElementById('item-username').value = currentDetailItem.username || '';
+      document.getElementById('item-password').value = currentDetailItem.password || '';
+      document.getElementById('item-totp').value = currentDetailItem.totpSecret || '';
+      document.getElementById('item-url').value = currentDetailItem.url || '';
+      document.getElementById('item-cardnumber').value = currentDetailItem.cardNumber || '';
+      document.getElementById('item-expiry').value = currentDetailItem.expiryDate || '';
+      document.getElementById('item-cvv').value = currentDetailItem.cvv || '';
+      document.getElementById('item-wifissid').value = currentDetailItem.wifiSsid || '';
+      document.getElementById('item-wifipassword').value = currentDetailItem.wifiPassword || '';
+      document.getElementById('item-docnumber').value = currentDetailItem.docNumber || '';
+      document.getElementById('item-notes').value = currentDetailItem.notes || '';
+      setFormCategory(currentDetailItem.category);
+      showScreen('screen-create');
+    }
+
+    function setFormCategory(cat) {
+      currentFormCategory = cat;
+      ['login', 'card', 'wifi', 'id_doc', 'note'].forEach(c => {
+        const chip = document.getElementById('form-cat-' + c);
+        if (chip) chip.classList.toggle('active', c === cat);
+        const f = document.getElementById('fields-' + c);
+        if (f) f.style.display = (c === cat) ? 'block' : 'none';
+      });
+    }
+
+    async function saveItemData() {
+      const title = document.getElementById('item-title').value.trim();
+      if (!title) {
+        alert("Iltimos, nomni kiriting / Введите название!");
+        return;
+      }
+
+      const editId = document.getElementById('edit-item-id').value;
+      const raw = localStorage.getItem(DB_KEYS.ITEMS);
+      let items = raw ? JSON.parse(raw) : [];
+
+      const itemData = {
+        title,
+        category: currentFormCategory,
+        username: document.getElementById('item-username').value,
+        password: document.getElementById('item-password').value,
+        totpSecret: document.getElementById('item-totp').value.trim(),
+        url: document.getElementById('item-url').value,
+        cardNumber: document.getElementById('item-cardnumber').value,
+        expiryDate: document.getElementById('item-expiry').value,
+        cvv: document.getElementById('item-cvv').value,
+        wifiSsid: document.getElementById('item-wifissid').value,
+        wifiPassword: document.getElementById('item-wifipassword').value,
+        docNumber: document.getElementById('item-docnumber').value,
+        notes: document.getElementById('item-notes').value,
+        savedAt: Date.now()
+      };
+
+      const encrypted = await encryptObject(itemData, activeKey);
+
+      if (editId) {
+        const idx = items.findIndex(i => i.id === editId);
+        if (idx >= 0) {
+          items[idx] = { id: editId, category: currentFormCategory, title, payload: encrypted, isDeleted: false };
+        }
+      } else {
+        const id = 'item_' + Date.now();
+        items.push({ id, category: currentFormCategory, title, payload: encrypted, isDeleted: false });
+      }
+
+      localStorage.setItem(DB_KEYS.ITEMS, JSON.stringify(items));
+      await saveAutoSnapshot(editId ? `Tahrir: ${title}` : `Qo'shildi: ${title}`);
+      showToast(I18N[currentLang].saved);
+      showScreen('screen-vault');
+      renderVault();
+    }
+
+    async function openDetail(id) {
+      const item = await getDecryptedItem(id);
+      if (!item) return;
+      currentDetailItem = item;
+
+      document.getElementById('detail-title').innerText = item.title;
+      document.getElementById('detail-category').innerText = item.category.toUpperCase();
+
+      const totpWidget = document.getElementById('detail-totp-widget');
+      clearInterval(liveTotpTimer);
+
+      if (item.totpSecret) {
+        totpWidget.style.display = 'flex';
+        const refreshTotp = async () => {
+          const res = await calculateTotp(item.totpSecret);
+          currentLiveTotpCode = res.code;
+          const displayStr = res.code.slice(0, 3) + ' ' + res.code.slice(3);
+          document.getElementById('detail-totp-code').innerText = displayStr;
+          document.getElementById('detail-totp-timer').innerText = res.secondsRemaining + 's';
+        };
+        refreshTotp();
+        liveTotpTimer = setInterval(refreshTotp, 1000);
+      } else {
+        totpWidget.style.display = 'none';
+      }
+
+      const content = document.getElementById('detail-content');
+      content.innerHTML = '';
+
+      if (item.username) content.innerHTML += createDetailRow('Login / Email', item.username);
+      if (item.password) content.innerHTML += createDetailRow('Parol / Password', item.password, true);
+      if (item.url) content.innerHTML += createDetailRow('Sayt / URL', item.url);
+      if (item.cardNumber) content.innerHTML += createDetailRow('Karta / Card', item.cardNumber);
+      if (item.wifiSsid) content.innerHTML += createDetailRow('Wi-Fi SSID', item.wifiSsid);
+      if (item.wifiPassword) content.innerHTML += createDetailRow('Wi-Fi Parol', item.wifiPassword, true);
+      if (item.docNumber) content.innerHTML += createDetailRow('Hujjat / ID', item.docNumber);
+      if (item.notes) {
+        content.innerHTML += `<div style="background:rgba(255,255,255,0.04); padding:12px; border-radius:10px; border:1px solid var(--card-border);"><div style="font-size:11px; color:var(--text-muted);">IZOH / NOTE</div><div style="margin-top:4px; font-size:14px;">${item.notes}</div></div>`;
+      }
+
+      showScreen('screen-detail');
+    }
+
+    function copyDetailTotp() {
+      if (currentLiveTotpCode) {
+        navigator.clipboard.writeText(currentLiveTotpCode);
+        showToast(I18N[currentLang].copied);
+      }
+    }
+
+    function createDetailRow(label, value, isSecret = false) {
+      return `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.04); padding:10px 14px; border-radius:10px; border:1px solid var(--card-border);">
+          <div>
+            <div style="font-size:11px; color:var(--text-muted);">${label}</div>
+            <div style="font-size:15px; font-weight:600; font-family:${isSecret ? 'monospace' : 'inherit'};">${value}</div>
+          </div>
+          <button class="copy-chip" onclick="copyValue('${value}')">${I18N[currentLang].copied.slice(0, 5)}</button>
+        </div>
+      `;
+    }
+
+    function copyValue(val) {
+      navigator.clipboard.writeText(val);
+      showToast(I18N[currentLang].copied);
+    }
+
+    function setGenMode(mode) {
+      currentGenMode = mode;
+      document.getElementById('mode-random').classList.toggle('active', mode === 'random');
+      document.getElementById('mode-passphrase').classList.toggle('active', mode === 'passphrase');
+      document.getElementById('mode-pin').classList.toggle('active', mode === 'pin');
+      regeneratePassword();
+    }
+
+    function regeneratePassword() {
+      const len = parseInt(document.getElementById('opt-len').value);
+      const pool = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+      const arr = new Uint32Array(len);
+      crypto.getRandomValues(arr);
+      let pwd = '';
+      for (let i = 0; i < len; i++) pwd += pool[arr[i] % pool.length];
+      document.getElementById('gen-result').innerText = pwd;
+    }
+
+    function updateLenVal() {
+      document.getElementById('len-val').innerText = document.getElementById('opt-len').value;
+      regeneratePassword();
+    }
+
+    function copyGenerated() {
+      const pwd = document.getElementById('gen-result').innerText;
+      navigator.clipboard.writeText(pwd);
+      showToast(I18N[currentLang].copied);
+    }
+
+    function saveGeneratedToVault() {
+      const pwd = document.getElementById('gen-result').innerText;
+      openAddModal();
+      document.getElementById('item-password').value = pwd;
+    }
+
+    window.onload = function() {
+      applyTheme(currentTheme);
+      applyLanguage(currentLang);
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      }
+
+      const hasHash = localStorage.getItem(DB_KEYS.HASH);
+      if (!hasHash) {
+        showScreen('screen-setup');
+      } else {
+        showScreen('screen-unlock');
+      }
+      regeneratePassword();
+    };
+  </script>
+</body>
+</html>

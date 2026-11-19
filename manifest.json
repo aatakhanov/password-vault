@@ -1,0 +1,22 @@
+{
+  "name": "SecurePass - Offline Password Manager & 2FA",
+  "short_name": "SecurePass",
+  "description": "100% Offline va Shifrlangan (AES-256) Xavfsiz Mobil Parollar Menejeri va 2FA Authenticator",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#090D16",
+  "theme_color": "#090D16",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./assets/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./assets/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

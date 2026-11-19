@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "SecurePass",
+    "slug": "passwords_app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#090D16",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.securepass.offline",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Parollar omborini ochish uchun Face ID dan foydalaniladi."
+      }
+    },
+    "android": {
+      "package": "com.securepass.offline",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#090D16"
+      },
+      "permissions": [
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT"
+      ],
+      "blockedPermissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Parollar omborini ochish uchun Face ID dan foydalaniladi."
+        }
+      ]
+    ],
+    "scheme": "securepass"
+  }
+}
